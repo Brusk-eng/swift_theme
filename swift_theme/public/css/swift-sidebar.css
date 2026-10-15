@@ -117,16 +117,63 @@ html[data-swift-sidebar-variant="Floating"] .body-sidebar {
   box-shadow: var(--swift-shadow-md);
 }
 
-/* Labels hidden until you point at it. The width itself is Frappe's to
-   animate, so nothing here touches it — overriding that is what once made
-   the sidebar jump on hover. */
-html[data-swift-sidebar-variant="Icon-only"] .body-sidebar .sidebar-item-label,
-html[data-swift-sidebar-variant="Icon-only"] .body-sidebar .keyboard-shortcut {
-  display: none;
-}
+/* Icons only, opening out when you point at it.
 
-html[data-swift-sidebar-variant="Icon-only"] .body-sidebar:hover .sidebar-item-label {
-  display: inline;
+   Since 16.50 an open sidebar is a 224px column and Frappe's own icon rail
+   only appears when the user folds it beside a floating dock; hiding the
+   labels alone left the full column standing with a strip of icons down its
+   edge. So the open panel is drawn as Frappe's rail (its own 48px,
+   --sidebar-collapsed-width) and widens over the page on hover. The column
+   keeps the rail's width in the layout, so the page never jumps; the wider
+   panel is drawn over it, as Frappe's drawer is. Keyboard focus opens it
+   too, so the labels are there for whoever is tabbing through.
+
+   Desktop only: below md the sidebar is a drawer, and a drawer of bare icons
+   would be no use to anyone. */
+@media (min-width: 768px) {
+  html[data-swift-sidebar-variant="Icon-only"] .body-sidebar-container.expanded {
+    width: var(--sidebar-collapsed-width, 48px);
+    overflow: visible;
+  }
+
+  html[data-swift-sidebar-variant="Icon-only"] .body-sidebar-container.expanded .body-sidebar {
+    width: var(--sidebar-collapsed-width, 48px);
+  }
+
+  /* Opened, it lies over the page, so it is drawn solid: the panel's usual
+     see-through fill let the rows of the page show between its own. */
+  html[data-swift-sidebar-variant="Icon-only"] .body-sidebar-container.expanded:hover .body-sidebar,
+  html[data-swift-sidebar-variant="Icon-only"] .body-sidebar-container.expanded .body-sidebar:has(:focus-visible) {
+    width: var(--sidebar-width, 224px);
+    /* The panel's colour at full strength; the rule that paints it (above,
+       "Body Sidebar premium") mixes it 82% with transparent, !important. */
+    background-color: var(--fg-color) !important;
+    box-shadow: var(--swift-shadow-md, 0 12px 30px rgba(0, 0, 0, 0.2));
+  }
+
+  /* The rail's inset, as a folded sidebar has (see .standard-sidebar-item
+     below): the usual 8px either side left a row narrower than its icon. */
+  html[data-swift-sidebar-variant="Icon-only"] .body-sidebar-container.expanded .standard-sidebar-item {
+    margin: 2px var(--swift-sidebar-inset);
+  }
+
+  html[data-swift-sidebar-variant="Icon-only"] .body-sidebar-container.expanded:not(:hover) .body-sidebar:not(:has(:focus-visible)) :is(
+    .sidebar-item-label,
+    .sidebar-item-suffix,
+    .sidebar-item-control,
+    .keyboard-shortcut,
+    .shell-header .title-container,
+    .shell-header .drop-icon,
+    .avatar-name-email
+  ) {
+    display: none;
+  }
+
+  /* The edge handle and the fold arrow sit at the open panel's edge, which
+     is out over the page until the panel opens. */
+  html[data-swift-sidebar-variant="Icon-only"] .body-sidebar-container.expanded:not(:hover) :is(.sidebar-edge, .sidebar-collapse-arrow) {
+    display: none;
+  }
 }
 
 /* ==========================================================================

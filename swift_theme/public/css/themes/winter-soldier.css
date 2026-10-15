@@ -35,6 +35,8 @@ html[data-swift-preset="winter-soldier"] {
   --swift-surface-alt:  #282c30;
   --swift-on-canvas:    #e6edf5;
   --swift-on-surface:   #e6edf5;
+  --swift-muted:        #8a9097;
+  --swift-border:       rgba(230, 237, 245, 0.14);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #0b0f14;

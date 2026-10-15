@@ -35,6 +35,8 @@ html[data-swift-preset="captain-america"] {
   --swift-surface-alt:  #f4f6fd;
   --swift-on-canvas:    #0f1b2e;
   --swift-on-surface:   #0f1b2e;
+  --swift-muted:        #757d8a;
+  --swift-border:       rgba(15, 27, 46, 0.13);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #f2f5fa;

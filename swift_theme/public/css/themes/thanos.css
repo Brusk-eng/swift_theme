@@ -35,6 +35,8 @@ html[data-swift-preset="thanos"] {
   --swift-surface-alt:  #2e2933;
   --swift-on-canvas:    #f4eefa;
   --swift-on-surface:   #f4eefa;
+  --swift-muted:        #958f9b;
+  --swift-border:       rgba(244, 238, 250, 0.14);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #120c17;

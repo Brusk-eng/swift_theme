@@ -1115,26 +1115,23 @@ html[data-swift-home-preset="honeycomb"] body.swift-home-open .swift-home-app-co
    a sidebar it is a full-height slide-out (`position: absolute; top: 0;
    height: 100vh`) which makes no sense hanging off a bell in a top bar.
 
+   Since 16.50 the panel is a frappe.ui.SidebarPanel (.sidebar-panel-
+   notifications), mounted in the sidebar's container and shut with Frappe's
+   `hidden` class; the dropdown these rules used to place is gone.
+
    `visibility` is the one property a child can turn back on after an ancestor
    has turned it off - which is exactly why the sidebar is hidden that way. */
 
-body.swift-home-open .body-sidebar .dropdown-notifications {
-  visibility: visible;
-}
-
-body.swift-home-open .body-sidebar .dropdown-notifications.hidden {
-  display: none;
-}
-
-body.swift-home-open .body-sidebar .notifications-list {
-  /* !important on the three placement properties only. Frappe anchors this
-     panel to the sidebar's edge with `left: 100%` from a more deeply nested
-     selector; left alone it lands one viewport to the right of the screen. */
+body.swift-home-open .sidebar-panel-notifications {
+  /* !important on the placement only: Frappe opens the panel past the
+     sidebar's edge (`left: var(--sidebar-width)` from a more particular
+     selector), which here is the edge of a sidebar that is not shown. */
   position: fixed !important;
   top: 64px !important;
   right: 16px !important;
   left: auto !important;
   z-index: 1050;
+  visibility: visible;
 
   width: min(380px, 92vw);
   height: auto;
@@ -1145,12 +1142,45 @@ body.swift-home-open .body-sidebar .notifications-list {
   border-radius: 14px;
   background: var(--swift-home-surface);
   box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.45);
+  color: var(--swift-home-ink-2);
 }
 
-/* Its body is sized as a share of a 100vh panel, which collapses to nothing
-   once the panel is only as tall as its contents. */
-body.swift-home-open .body-sidebar .notification-list-body {
-  height: auto;
+/* What Frappe draws inside these two - the panel's tabs and empty state, the
+   menu's rows - reads the desk's colour scale, so on a design whose palette
+   is not the desk's (a light landing over a dark preset) they came out in
+   the desk's colours: a dark tab strip on a white panel. Inside them the
+   scale is the design's own. */
+html[data-swift-home-preset] body.swift-home-open .sidebar-panel-notifications,
+html[data-swift-home-preset] body.swift-home-open .es-menu {
+  --surface-base: var(--swift-home-surface);
+  --surface-elevation-1: var(--swift-home-surface);
+  --surface-elevation-2: var(--swift-home-surface);
+  --surface-elevation-3: var(--swift-home-surface);
+  --surface-gray-1: var(--swift-home-surface-2);
+  --surface-gray-2: color-mix(in srgb, var(--swift-home-surface), var(--swift-home-ink) 6%);
+  --surface-gray-3: color-mix(in srgb, var(--swift-home-surface), var(--swift-home-ink) 10%);
+  --surface-gray-4: color-mix(in srgb, var(--swift-home-surface), var(--swift-home-ink) 15%);
+  --ink-gray-4: var(--swift-home-muted);
+  --ink-gray-5: var(--swift-home-muted);
+  --ink-gray-6: var(--swift-home-muted);
+  --ink-gray-7: var(--swift-home-ink-2);
+  --ink-gray-8: var(--swift-home-ink-2);
+  --ink-gray-9: var(--swift-home-ink);
+  --outline-gray-1: var(--swift-home-border);
+  --outline-gray-2: var(--swift-home-border);
+  --outline-elevation-1: var(--swift-home-border);
+  --outline-elevation-2: var(--swift-home-border);
+  --text-color: var(--swift-home-ink-2);
+  --text-muted: var(--swift-home-muted);
+  --text-light: var(--swift-home-muted);
+  --heading-color: var(--swift-home-ink);
+  --border-color: var(--swift-home-border);
+}
+
+/* Its body takes what a 100vh panel leaves, which is nothing once the panel
+   is only as tall as its contents. */
+body.swift-home-open .sidebar-panel-notifications .sidebar-panel-body {
+  flex: 0 1 auto;
   min-height: 220px;
   max-height: calc(70vh - 56px);
   overflow-y: auto;
@@ -1158,13 +1188,12 @@ body.swift-home-open .body-sidebar .notification-list-body {
 
 /* Frappe paints the panel's own text from the desk palette; on the dark
    designs that lands nearly black on a dark panel. */
-body.swift-home-open .body-sidebar .notifications-list,
-body.swift-home-open .body-sidebar .notifications-list a,
-body.swift-home-open .body-sidebar .notification-list-header {
+body.swift-home-open .sidebar-panel-notifications a,
+body.swift-home-open .sidebar-panel-notifications .panel-title {
   color: var(--swift-home-ink-2);
 }
 
-body.swift-home-open .body-sidebar .notifications-list svg {
+body.swift-home-open .sidebar-panel-notifications svg {
   stroke: currentColor;
   fill: none;
 }
@@ -1302,29 +1331,33 @@ body.swift-home-edit .swift-home-app {
 
 
 /* ---- the avatar's menu ----
-   frappe.ui.create_menu hangs its panel off <body>, so it is scoped by the
-   landing's body class rather than by a container. The generic themed link
-   rule painted every entry in the accent; a menu is read, not emphasised. */
+   The desk's own user menu (16.50: a frappe.ui.Dropdown, an .es-menu) hangs
+   its panel off <body>, so it is scoped by the landing's body class rather
+   than by a container, and drawn in the design's colours like the rest of
+   the page. A menu is read, not emphasised: entries stay in the ink. */
 
-body.swift-home-open .frappe-menu.context-menu {
+body.swift-home-open .es-menu {
   border: 1px solid var(--swift-home-border);
   border-radius: 12px;
   background: var(--swift-home-surface);
   box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.45);
-  overflow: hidden;
+  color: var(--swift-home-ink-2);
 }
 
-body.swift-home-open .frappe-menu .dropdown-menu-item,
-body.swift-home-open .frappe-menu .menu-item-title,
-body.swift-home-open .frappe-menu a {
-  color: var(--swift-home-ink-2) !important;
+body.swift-home-open .es-menu .es-menu__item:not([data-theme="red"]) {
+  color: var(--swift-home-ink-2);
 }
 
-body.swift-home-open .frappe-menu .dropdown-menu-item:hover {
+body.swift-home-open .es-menu .es-menu__item:hover,
+body.swift-home-open .es-menu .es-menu__item[data-highlighted] {
   background: var(--swift-home-accent-soft);
 }
 
-body.swift-home-open .frappe-menu svg {
+body.swift-home-open .es-menu .es-menu__group + .es-menu__group {
+  border-top-color: var(--swift-home-border);
+}
+
+body.swift-home-open .es-menu .es-menu__item > svg {
   stroke: currentColor;
   fill: none;
 }

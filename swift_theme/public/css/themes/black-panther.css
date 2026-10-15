@@ -35,6 +35,8 @@ html[data-swift-preset="black-panther"] {
   --swift-surface-alt:  #27272d;
   --swift-on-canvas:    #ecebf5;
   --swift-on-surface:   #ecebf5;
+  --swift-muted:        #8d8c95;
+  --swift-border:       rgba(236, 235, 245, 0.14);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #0a0a10;

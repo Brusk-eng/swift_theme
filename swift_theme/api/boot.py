@@ -59,6 +59,13 @@ def boot_session(bootinfo):
 
 SHIPPED_LOGO = "/assets/swift_theme/icons/quantex-beast.png"
 FALLBACK_LOGO = "/assets/swift_theme/icons/favicon.svg"
+# The same lion as a vector, its circuit traces lit: pulses run along them and
+# a sheen crosses the mark now and then (the QuanteX site's footer lion). The
+# animation is CSS inside the file, so it plays wherever the file is drawn as
+# an image and stops for anyone who has asked their system for less motion.
+# Used where the mark is shown large - the login page and the desk's splash;
+# the desk's own chrome keeps the still mark, as the QuanteX navbar does.
+ANIMATED_LOGO = "/assets/swift_theme/icons/quantex-lion.svg"
 
 
 def _site_has_its_own_logo():
@@ -94,6 +101,27 @@ def _brand_mark():
     return SHIPPED_LOGO if _shipped_logo_exists() else FALLBACK_LOGO
 
 
+def _animated_logo_exists():
+    return os.path.exists(
+        os.path.join(frappe.get_app_path("swift_theme"), "public", "icons", os.path.basename(ANIMATED_LOGO))
+    )
+
+
+def login_mark():
+    """The logo the login page draws, by the rule the desk's mark follows.
+
+    Brand Logo from Swift Theme Settings first; then nothing of ours if the
+    site has chosen its own logo (Frappe's page shows that one); otherwise the
+    theme's lion, moving.
+    """
+    s = _settings()
+    if s.get("brand_logo"):
+        return s.get("brand_logo")
+    if _site_has_its_own_logo():
+        return None
+    return ANIMATED_LOGO if _animated_logo_exists() else None
+
+
 def brand_favicon(context=None):
     """The tab icon and the splash mark, by the same rule as the app logo.
 
@@ -119,7 +147,9 @@ def brand_favicon(context=None):
         # The logo reads better here than the favicon: the splash draws it at
         # up to 200px wide, where a tab-sized mark would look starved. Brand
         # Logo if the site set one, otherwise the theme's mark.
-        context["splash_image"] = s.get("brand_logo") or fallback
+        context["splash_image"] = s.get("brand_logo") or (
+            ANIMATED_LOGO if _animated_logo_exists() else fallback
+        )
 
     return context
 

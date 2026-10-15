@@ -129,6 +129,8 @@ html[data-swift-preset="{slug}"] {{
   --swift-surface-alt:  {r["surface_alt"]};
   --swift-on-canvas:    {r["on_canvas"]};
   --swift-on-surface:   {r["on_surface"]};
+  --swift-muted:        {r["muted"]};
+  --swift-border:       {r["border"]};
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            {r["canvas"]};

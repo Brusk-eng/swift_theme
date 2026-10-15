@@ -35,6 +35,8 @@ html[data-swift-preset="doctor-strange"] {
   --swift-surface-alt:  #f3f8f8;
   --swift-on-canvas:    #0c211f;
   --swift-on-surface:   #0c211f;
+  --swift-muted:        #73817f;
+  --swift-border:       rgba(12, 33, 31, 0.13);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #f0f6f5;

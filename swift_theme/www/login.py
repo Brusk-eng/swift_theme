@@ -4,6 +4,8 @@ from frappe.utils import now_datetime
 from frappe.www.login import get_context as frappe_login_context
 from frappe.www.login import sanitize_redirect
 
+from swift_theme.api.boot import login_mark
+
 no_cache = True
 
 
@@ -58,6 +60,12 @@ def get_context(context):
     # renamed.
 
     settings = frappe.get_cached_doc("Swift Theme Settings")
+    # The mark at the top of the form. Frappe's page draws the app logo, which
+    # on a site that has not set one is this app's generic tile - not the mark
+    # the desk shows - so the theme's own (or Brand Logo) is put there instead.
+    mark = login_mark()
+    if mark:
+        context["logo"] = mark
     context["brand_name"] = settings.brand_name or frappe.get_website_settings("app_name") or ""
     context["brand_logo"] = settings.brand_logo or ""
     context["login_tagline"] = settings.login_tagline or ""

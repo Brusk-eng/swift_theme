@@ -69,8 +69,8 @@
         surface_alt: ["--swift-surface-alt", "--subtle-fg", "--sidebar-bg", "--control-bg"],
         on_canvas:   ["--swift-on-canvas", "--heading-color"],
         on_surface:  ["--swift-on-surface", "--text-color"],
-        muted:       ["--text-muted", "--text-light"],
-        border:      ["--border-color"],
+        muted:       ["--swift-muted", "--text-muted", "--text-light"],
+        border:      ["--swift-border", "--border-color"],
         primary:     ["--swift-primary", "--swift-accent"],
         secondary:   ["--swift-secondary", "--swift-accent-hover"],
         on_primary:  ["--swift-accent-fg"],
@@ -223,6 +223,7 @@
             preset ? c.theme_css : null,
             preset && appliedRoles ? clearRoles : undefined
         );
+        applyScheme(schemeOf(c, appliedRoles));
 
         set("preset", preset);
         set("primary", primary);
@@ -233,6 +234,51 @@
         // Cached so the very next load's bootstrap call above can bridge
         // correctly even before frappe.boot has had a chance to help.
         set("roles", appliedRoles ? JSON.stringify(appliedRoles) : "");
+    }
+
+    /* A colour scheme is light or dark as a whole, and Frappe's own Light /
+       Dark has to agree with it. Since 16.50 Frappe's dark mode is a palette
+       of its own (colors.css redefines every colour under
+       [data-theme="dark"]): with a dark preset on a desk left in Light,
+       everything Frappe draws from that palette - status colours, badges,
+       charts, the code editor - came out in its light version on a dark page.
+
+       So the scheme decides. Its brightness comes from its canvas when the
+       roles are known, otherwise from the preset's own entry in the catalog;
+       Custom Colors always has roles. */
+    function schemeOf(c, roles) {
+        if (roles && channels(roles.canvas)) return luminance(roles.canvas) < 0.2 ? "dark" : "light";
+        var catalog = (window.frappe && frappe.boot && frappe.boot.swift_theme
+            && frappe.boot.swift_theme.presets) || [];
+        for (var i = 0; i < catalog.length; i++) {
+            if (c.preset && catalog[i].key === c.preset) return catalog[i].mode === "dark" ? "dark" : "light";
+        }
+        return "";
+    }
+
+    function applyScheme(scheme) {
+        if (scheme) html.setAttribute("data-swift-scheme", scheme);
+        else html.removeAttribute("data-swift-scheme");
+        holdFrappeTheme();
+        // Only the desk has a Light / Dark of its own (desk.html writes
+        // data-theme-mode); a portal page is left as Frappe draws it.
+        if (html.getAttribute("data-theme-mode") === null) return;
+        if (scheme) html.setAttribute("data-theme", scheme);
+        else if (window.frappe && frappe.ui && frappe.ui.set_theme) frappe.ui.set_theme();
+    }
+
+    /* Frappe sets data-theme itself on start-up, whenever its theme mode
+       changes and, on Automatic, when the system switches: each would undo
+       the scheme. Every one of them goes through frappe.ui.set_theme, so that
+       is where the scheme is held. Without a scheme it is Frappe's again. */
+    function holdFrappeTheme() {
+        var ui = window.frappe && frappe.ui;
+        if (!ui || typeof ui.set_theme !== "function" || ui.set_theme.__swiftScheme) return;
+        var frappeSetTheme = ui.set_theme;
+        ui.set_theme = function (theme) {
+            return frappeSetTheme.call(this, html.getAttribute("data-swift-scheme") || theme);
+        };
+        ui.set_theme.__swiftScheme = true;
     }
 
     // One <link> that is retargeted, so switching presets never stacks
@@ -697,7 +743,11 @@
         ), 0);
     }
 
+    /* The desk has frappe.after_ajax. The login page and the rest of the
+       website do not, and they never raise app_ready either - that is the
+       desk's - so waiting for it there meant the line was never written on
+       any website page. Those print it once the page has been read. */
     if (window.frappe && frappe.after_ajax) frappe.after_ajax(stamp);
-    else if (window.jQuery) jQuery(document).on("app_ready", stamp);
+    else if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", stamp);
     else stamp();
 })();

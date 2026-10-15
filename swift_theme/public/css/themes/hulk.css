@@ -35,6 +35,8 @@ html[data-swift-preset="hulk"] {
   --swift-surface-alt:  #282e24;
   --swift-on-canvas:    #eef6e4;
   --swift-on-surface:   #eef6e4;
+  --swift-muted:        #8f9687;
+  --swift-border:       rgba(238, 246, 228, 0.14);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #0b1206;
