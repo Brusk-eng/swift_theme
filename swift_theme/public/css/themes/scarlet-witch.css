@@ -35,6 +35,8 @@ html[data-swift-preset="scarlet-witch"] {
   --swift-surface-alt:  #fcf3f5;
   --swift-on-canvas:    #251016;
   --swift-on-surface:   #251016;
+  --swift-muted:        #86767a;
+  --swift-border:       rgba(37, 16, 22, 0.13);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #fdf3f5;

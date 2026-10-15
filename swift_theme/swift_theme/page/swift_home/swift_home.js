@@ -20,6 +20,10 @@ frappe.pages["swift-home"].on_page_load = function (wrapper) {
 		parent: wrapper,
 		title: __("Home"),
 		single_column: true,
+		// The dock is the apps again, as the sidebar is (see on_page_show);
+		// Frappe's own landing goes without both. Since 16.50 a page says so
+		// itself, and Frappe puts the dock away for it.
+		hide_dock: true,
 	});
 	// Handed to the page object so the rendering can be driven from a test:
 	// the trend beside a figure only appears when a card has a previous period
@@ -176,12 +180,23 @@ class SwiftHome {
 		this.setup_user_menu($avatar);
 	}
 
-	/* The user menu Frappe's own launcher hangs on its avatar - profile,
-	   theme, about, support, logout - built with the same frappe.ui.create_menu
-	   and the same items, so the avatar behaves here as it does there. A plain
-	   route to the profile, which this button did at first, dropped everything
-	   else that menu offers. */
+	/* The user menu the desk hangs on its own avatar, so the avatar behaves
+	   here as it does there. Since 16.50 that menu is one builder shared by
+	   the sidebar's user button and the dock's avatar (sidebar.js,
+	   create_user_menu) - Settings, Manage Dock, Reload, Logout - and the
+	   frappe.ui.create_menu this used is gone: calling it threw while the page
+	   was being built, and the whole landing stayed blank. Reset Layout is in
+	   this page's own bar. The older menu stays for a desk without the
+	   builder. A plain route to the profile, which this button did at first,
+	   dropped everything else that menu offers. */
 	setup_user_menu($avatar) {
+		const sidebar = frappe.app && frappe.app.sidebar;
+		if (sidebar && typeof sidebar.create_user_menu === "function") {
+			sidebar.create_user_menu({ parent: $avatar, button: $avatar, side: "bottom", align: "end" });
+			return;
+		}
+		if (typeof frappe.ui.create_menu !== "function") return;
+
 		const is_dark = document.documentElement.getAttribute("data-theme") === "dark";
 		const items = [
 			{
@@ -372,12 +387,18 @@ class SwiftHome {
 	   to call, asked the server for the meta of an undefined doctype and threw
 	   `getdoctype() missing 1 required positional argument`. */
 	open_search(prefill) {
-		const btn = document.querySelector("#navbar-modal-search");
-		if (!btn) {
+		// Since 16.50 the search is the awesome bar's own modal, opened by
+		// the sidebar's Search row; the navbar button this clicked is gone.
+		const bar = frappe.app && frappe.app.awesome_bar;
+		const btn = document.querySelector(".navbar-modal-search-mobile, #navbar-modal-search");
+		if (bar && typeof bar.open === "function") {
+			bar.open();
+		} else if (btn) {
+			btn.click();
+		} else {
 			frappe.set_route("List", "Notification Log");
 			return;
 		}
-		btn.click();
 		if (!prefill) return;
 		setTimeout(() => {
 			const input = document.querySelector("#navbar-search");
@@ -729,6 +750,22 @@ class SwiftHome {
 	   list, and /app/organization was a Page Not Found. */
 	route_for(icon) {
 		if (icon.link_type === "External" && icon.link) return icon.link;
+
+		// 16.50 and later: the landing a module's sidebar opens on, the same one
+		// the Apps screen and the dock open (desktop_icons.bundle.js, get_route).
+		const shell =
+			icon.link_type === "Workspace Sidebar" &&
+			frappe.utils.sidebar_for_module &&
+			frappe.utils.sidebar_for_module(icon.module || icon.label);
+		const landing =
+			shell &&
+			frappe.app.sidebar &&
+			frappe.app.sidebar.module_landing_route &&
+			frappe.app.sidebar.module_landing_route(shell.name);
+		if (landing) return landing;
+		// Its first link otherwise, the way Frappe's own icon helper reads it.
+		const first_link = shell && frappe.utils.get_route_for_icon && frappe.utils.get_route_for_icon(icon);
+		if (first_link) return first_link;
 
 		const sidebar =
 			frappe.boot.workspace_sidebar_item &&

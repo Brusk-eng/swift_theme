@@ -352,14 +352,16 @@ html[data-swift-preset="scarlet-witch"] {
         transparent 9px 13px);
 }
 
-/* Black Panther — the vibranium weave */
+/* Black Panther — the vibranium weave. One image, like every other mark
+   here: the rules that draw it give a position, a size and no-repeat to a
+   single layer, so a second gradient in this value came out unsized and
+   covered the whole header, with the title written over the pattern. */
 html[data-swift-preset="black-panther"] {
     --swift-head-accent-size: 5px 100%;
-    --swift-head-accent:
-        repeating-linear-gradient(45deg,
-            var(--swift-primary, var(--swift-accent)) 0 2px, transparent 2px 5px),
-        repeating-linear-gradient(-45deg,
-            var(--swift-secondary, var(--swift-accent-hover)) 0 2px, transparent 2px 5px);
+    --swift-head-accent: repeating-linear-gradient(45deg,
+        var(--swift-primary, var(--swift-accent)) 0 2px,
+        var(--swift-secondary, var(--swift-accent-hover)) 2px 3px,
+        transparent 3px 5px);
 }
 
 /* Loki — Asgardian chevrons */

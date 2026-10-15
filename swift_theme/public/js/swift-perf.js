@@ -39,9 +39,16 @@
             });
         } catch (e) {}
     }
+    /* Not on .layout-main-section. will-change: transform makes an element
+       the containing block for every position:fixed box inside it - the
+       same trap swift-perf.css describes for content-visibility. The page's
+       main section holds an open child-table row (position: fixed over a
+       backdrop) and the Swift Home artwork (pinned to the viewport); under
+       the hint both were laid out against the section instead, and the
+       landing's artwork stopped where its content did. */
     function hintPaint() {
         try {
-            document.querySelectorAll(".layout-main-section, .list-row-container").forEach(function (el) {
+            document.querySelectorAll(".list-row-container").forEach(function (el) {
                 el.style.willChange = "transform";
             });
         } catch (e) {}

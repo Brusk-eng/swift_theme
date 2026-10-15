@@ -35,6 +35,8 @@ html[data-swift-preset="loki"] {
   --swift-surface-alt:  #252f2c;
   --swift-on-canvas:    #e6f4ee;
   --swift-on-surface:   #e6f4ee;
+  --swift-muted:        #889690;
+  --swift-border:       rgba(230, 244, 238, 0.14);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #07130f;

@@ -35,6 +35,8 @@ html[data-swift-preset="star-lord"] {
   --swift-surface-alt:  #fcf6f3;
   --swift-on-canvas:    #26160c;
   --swift-on-surface:   #26160c;
+  --swift-muted:        #857a72;
+  --swift-border:       rgba(38, 22, 12, 0.13);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #faf5ef;

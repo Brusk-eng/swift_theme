@@ -35,6 +35,8 @@ html[data-swift-preset="iron-man"] {
   --swift-surface-alt:  #fbf4f4;
   --swift-on-canvas:    #241413;
   --swift-on-surface:   #241413;
+  --swift-muted:        #837877;
+  --swift-border:       rgba(36, 20, 19, 0.13);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #f7f3f1;

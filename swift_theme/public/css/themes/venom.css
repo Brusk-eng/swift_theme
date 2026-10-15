@@ -35,6 +35,8 @@ html[data-swift-preset="venom"] {
   --swift-surface-alt:  #262627;
   --swift-on-canvas:    #e8e9ec;
   --swift-on-surface:   #e8e9ec;
+  --swift-muted:        #8a8b8d;
+  --swift-border:       rgba(232, 233, 236, 0.14);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #08080a;

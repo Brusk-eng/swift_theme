@@ -55,7 +55,7 @@ body.swift-login .form-control:focus {
   box-shadow: 0 0 0 2px var(--swift-accent-soft);
 }
 
-body.swift-login .btn-primary {
+body.swift-login .signup-disabled-message .es-button[data-variant="solid"] {
   background: var(--swift-accent);
   border-color: var(--swift-accent);
   font-weight: 600;
@@ -63,7 +63,7 @@ body.swift-login .btn-primary {
   border-radius: var(--swift-radius-md);
 }
 
-body.swift-login .btn-primary:hover {
+body.swift-login .signup-disabled-message .es-button[data-variant="solid"]:hover {
   opacity: 0.9;
 }
 
@@ -82,7 +82,7 @@ body.swift-login .forgot-password-message a:hover {
   color: var(--swift-accent);
 }
 
-body.swift-login .social-logins .btn {
+body.swift-login .social-logins .es-button {
   margin-top: 8px;
 }
 
@@ -195,21 +195,9 @@ body.swift-login-Split .page-card .page-card-body input[type="password"] {
   font-size: 15px;
 }
 
-/* Frappe parks an icon inside these fields (position:absolute, left 8px) and
-   buys the space back with padding-left:38px on the input. The shorthand above
-   is more specific, so it overwrote that padding and the text ran underneath
-   the icon - and under the password field's reveal toggle on the right. The
-   space is bought back here, at the wider inset this taller field wants. */
-body.swift-login-Split .page-card .page-card-body .email-field .field-icon,
-body.swift-login-Split .page-card .page-card-body .password-field .field-icon {
-  left: 15px;
-}
-
-body.swift-login-Split .page-card .page-card-body .email-field input,
-body.swift-login-Split .page-card .page-card-body .password-field input {
-  padding-left: 45px;
-}
-
+/* The password field's reveal toggle sits inside it on the right, so the
+   text stops short of it. (Frappe 16.50 took away the icons that used to sit
+   on the left, and the room made for them went with them.) */
 body.swift-login-Split .page-card .page-card-body .password-field input {
   padding-right: 45px;
 }
@@ -423,35 +411,18 @@ body.swift-login-Centered .page-card .page-card-body input[type="password"]:focu
 
 /* Frappe reserves 38px for its icons inside the control. The pill's curve
    needs a little more, and the reveal control on the right the same. */
-body.swift-login-Centered .page-card .page-card-body .email-field input,
-body.swift-login-Centered .page-card .page-card-body .password-field input {
-  padding-left: 44px;
-}
-
 body.swift-login-Centered .page-card .page-card-body .password-field input {
   padding-right: 48px;
 }
 
-/* Frappe puts its field icons inside the control. The pill's curve needs them
-   further in, or they sit on the rounded edge. */
-body.swift-login-Centered .field-icon,
+/* The reveal control sits inside the pill; the curve needs it further in,
+   or it sits on the rounded edge. */
 body.swift-login-Centered .toggle-password {
   color: rgba(255, 255, 255, 0.82);
 }
 
-body.swift-login-Centered .email-field .field-icon,
-body.swift-login-Centered .password-field .field-icon {
-  left: 16px;
-}
-
 body.swift-login-Centered .toggle-password {
   right: 18px;
-}
-
-/* Frappe reserves room for the icon with padding; the pill needs its own. */
-body.swift-login-Centered .email-field .form-control,
-body.swift-login-Centered .password-field .form-control {
-  padding-left: 42px;
 }
 
 body.swift-login-Centered .password-field .form-control {
@@ -664,12 +635,6 @@ body.swift-login-Minimal .form-label {
   font-weight: 500;
   letter-spacing: 0.02em;
   color: var(--text-muted);
-}
-
-/* Frappe puts its field icons inside the control, which a line has no room
-   for — they would sit on the text. */
-body.swift-login-Minimal .field-icon {
-  display: none;
 }
 
 body.swift-login-Minimal .email-field .form-control,
@@ -1080,18 +1045,12 @@ body.swift-login-Centered .page-card .page-card-body {
   flex-direction: column;
 }
 
-/* Frappe's icons sit inside the control. On a pill they need to come in off
-   the curve, and they have to be light enough to see on dark glass. */
-body.swift-login-Centered .page-card .page-card-body .field-icon,
+/* The reveal control sits inside the control. On a pill it needs to come in
+   off the curve, and it has to be light enough to see on dark glass. */
 body.swift-login-Centered .page-card .page-card-body .toggle-password {
   color: rgba(255, 255, 255, 0.72);
   stroke: rgba(255, 255, 255, 0.72);
   left: auto;
-}
-
-body.swift-login-Centered .page-card .page-card-body .email-field .field-icon,
-body.swift-login-Centered .page-card .page-card-body .password-field .field-icon {
-  left: 18px;
 }
 
 body.swift-login-Centered .page-card .page-card-body .toggle-password {
@@ -1333,4 +1292,87 @@ body.swift-login-Centered .page-card .page-card-body input[type="password"]:hove
 
 body.swift-login-Split .page-card .page-card-body input:hover:not(:focus) {
   background: color-mix(in oklab, var(--swift-accent) 12%, var(--swift-surface, #fff));
+}
+
+
+/* ==========================================================================
+   Frappe 16.50's login markup
+   ==========================================================================
+   The buttons are Frappe's es-button now (the solid one is what its login.js
+   writes "Verifying…" onto) and a refused sign-in arrives in an es-alert
+   banner. Frappe draws both from its light palette whatever the page around
+   them looks like, so on a dark form the second way in was a white slab and
+   the message a pale pink box. */
+
+/* The other ways in: an outlined pill under the solid one, on every layout
+   that draws them as buttons (Centered draws them as links, above). */
+body.swift-login-Split .page-card .page-card-actions .btn-login-option,
+body.swift-login-Minimal .page-card .page-card-actions .btn-login-option {
+  height: 46px;
+  border: 1px solid color-mix(in oklab, var(--swift-on-surface, var(--text-color)) 22%, transparent);
+  background: transparent;
+  color: var(--swift-on-surface, var(--text-color));
+  font-size: 14px;
+  font-weight: 500;
+}
+
+body.swift-login-Split .page-card .page-card-actions .btn-login-option {
+  border-radius: 999px;
+}
+
+body.swift-login-Minimal .page-card .page-card-actions .btn-login-option {
+  border-radius: 10px;
+}
+
+body.swift-login-Split .page-card .page-card-actions .btn-login-option:hover,
+body.swift-login-Minimal .page-card .page-card-actions .btn-login-option:hover {
+  border-color: color-mix(in oklab, var(--swift-accent) 55%, transparent);
+  background: color-mix(in oklab, var(--swift-accent) 12%, transparent);
+  color: var(--swift-on-surface, var(--text-color));
+}
+
+/* The messages, in the form's own colours: a tint of red (or green) over the
+   card, with text mixed from the same hue and the card's ink, so they read on
+   a light form and a dark one alike. Centered keeps its own chip, above. */
+body.swift-login:not(.swift-login-Centered) .page-card .login-error-banner,
+body.swift-login:not(.swift-login-Centered) .page-card .login-success-banner {
+  --swift-banner: #ef4444;
+  border: 1px solid color-mix(in oklab, var(--swift-banner) 40%, transparent);
+  background: color-mix(in oklab, var(--swift-banner) 14%, var(--swift-surface, #fff));
+  color: color-mix(in oklab, var(--swift-banner) 55%, var(--swift-on-surface, var(--text-color)));
+}
+
+body.swift-login:not(.swift-login-Centered) .page-card .login-success-banner {
+  --swift-banner: #16a34a;
+}
+
+/* The banner's title is painted from Frappe's light ink (es-alert__title);
+   it follows the banner's own colour instead. */
+body.swift-login .page-card .login-error-banner .es-alert__title,
+body.swift-login .page-card .login-success-banner .es-alert__title {
+  color: inherit;
+}
+
+body.swift-login .page-card .login-error-banner svg,
+body.swift-login .page-card .login-success-banner svg {
+  color: currentColor;
+  stroke: currentColor;
+}
+
+/* The theme's lion is drawn large enough for its circuit to be seen moving;
+   a site's own logo keeps the size each layout gives it. */
+body.swift-login .page-card-head img.app-logo[src$="/quantex-lion.svg"] {
+  width: 76px;
+  height: 76px;
+  max-height: none;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 109, 221, 0.18), transparent 72%);
+}
+
+@media (max-height: 720px) {
+  body.swift-login .page-card-head img.app-logo[src$="/quantex-lion.svg"] {
+    width: 56px;
+    height: 56px;
+  }
 }

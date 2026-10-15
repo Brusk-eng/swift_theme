@@ -35,6 +35,8 @@ html[data-swift-preset="vision"] {
   --swift-surface-alt:  #faf7f3;
   --swift-on-canvas:    #231a09;
   --swift-on-surface:   #231a09;
+  --swift-muted:        #847d70;
+  --swift-border:       rgba(35, 26, 9, 0.13);
 
   /* Mapped onto the variables Frappe itself paints with */
   --bg-color:            #fbf7ee;

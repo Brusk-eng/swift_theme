@@ -1,17 +1,26 @@
-/* Swift Theme — presets inside Frappe's own "Switch Theme" dialog
+/* Swift Theme — presets inside Frappe's own theme picker
 
-   Frappe's navbar switcher only offers Light / Dark / Automatic. This extends
-   that same dialog with the Swift presets, drawn as the same preview cards so
-   the whole dialog reads as one list rather than two different widgets.
+   Frappe offers Light / Dark / Automatic in two places: the Switch Theme
+   dialog (Ctrl+Shift+G) and, since 16.50, the Appearance tab of its user
+   settings. Both build a frappe.ui.ThemeSwitcher; the Appearance tab keeps
+   only its card grid (switcher.body) and throws the dialog away. So the
+   presets go inside that grid, not under it in the dialog, and appear in
+   both places.
 
-   Two deliberate choices:
-   * The cards are placed in a .theme-grid, which is Frappe's own class, so they
-     inherit its card styling instead of duplicating it here.
+   Three deliberate choices:
+   * The cards use Frappe's own card markup (theme-card-wrapper, theme-card,
+     theme-preview-*), so they inherit its card styling instead of duplicating
+     it here. Each preview is fed the preset's colours, so it shows that
+     preset rather than Frappe's light or dark.
    * "Custom Colors" is a card like any other; the two pickers only appear once
-     it is chosen, so the dialog stays a simple list until you ask for more.
+     it is chosen, so the picker stays a simple list until you ask for more.
+   * Frappe's own Light / Dark / Automatic cards are put away while a Swift
+     scheme is on (swift-desk.css). The scheme decides light or dark
+     (swift-boot.js), so those cards could still be clicked and would change
+     nothing on screen.
 
-   setup_dialog is wrapped rather than replaced, leaving Frappe's own grid and
-   keyboard handling untouched. */
+   setup_dialog is wrapped rather than replaced, so Frappe still builds the
+   picker. */
 
 (function () {
     if (!window.frappe) return;
@@ -27,6 +36,7 @@
         Switcher.prototype.setup_dialog = function () {
             originalSetup.call(this);
             try {
+                host(this);
                 render(this);
             } catch (e) {
                 // Frappe's own switcher must keep working even if ours can't.
@@ -39,18 +49,38 @@
         return (window.frappe && frappe.boot && frappe.boot.swift_theme) || {};
     }
 
+    /* Frappe's grid becomes the host, so the section travels with it into
+       the Appearance tab. Its arrow keys are stilled while its cards are put
+       away: the dialog's handler walks this.themes and clicks the next card,
+       which would save a mode nobody can see. It returns early while there
+       are no themes, so the list is emptied once Frappe has drawn it. */
+    function host(switcher) {
+        switcher.body.addClass("swift-switch-host");
+        var frappeRender = switcher.render;
+        switcher.render = function () {
+            frappeRender.apply(this, arguments);
+            if (document.documentElement.getAttribute("data-swift-scheme")) this.themes = null;
+        };
+    }
+
     function render(switcher) {
         var prefs = boot();
+        var $host = switcher.body;
+
         // Both gates, not just the permission one. Enable Theme Switcher is the
         // site-wide switch, and it has to reach here too: the navbar chip
         // honoured it while this section carried on adding presets to Frappe's
         // own Switch Theme dialog, so turning the switcher off only half worked.
-        if (!prefs.enable_switcher) return;          // turned off site-wide
-        if (!prefs.can_switch_theme) return;         // restricted to admins
         var presets = prefs.presets || [];
-        if (!presets.length) return;
-
-        var $body = switcher.dialog.$body;
+        if (!prefs.enable_switcher || !prefs.can_switch_theme || !presets.length) {
+            // Frappe's cards are put away all the same, so say why it is empty.
+            if (document.documentElement.getAttribute("data-swift-scheme")) {
+                $('<p class="swift-switch-note"></p>')
+                    .text(__("Light or dark comes with this site's theme."))
+                    .appendTo($host);
+            }
+            return;
+        }
 
         var $section = $(
             '<div class="swift-switch">' +
@@ -61,7 +91,7 @@
             '<div class="theme-grid swift-theme-grid"></div>' +
             '<div class="swift-custom" hidden></div>' +
             "</div>"
-        ).appendTo($body);
+        ).appendTo($host);
 
         var $grid = $section.find(".swift-theme-grid");
         var $custom = $section.find(".swift-custom");
@@ -110,44 +140,64 @@
         };
     }
 
-    /* Mirrors the markup Frappe builds for its own themes, with the preset's
-       colours fed in as custom properties so the card previews the real thing. */
+    /* Frappe's card (ui/theme_switcher.js, get_preview_html), with the preset's
+       colours handed to the preview as custom properties; swift-desk.css turns
+       them into the tokens Frappe's preview is drawn with. */
     function card(p, selected, onClick) {
+        var field =
+            '<div class="theme-preview-field">' +
+            '<div class="theme-preview-label"></div>' +
+            '<div class="theme-preview-input"></div>' +
+            "</div>";
         var $card = $(
-            '<div data-swift-card="' + p.key + '" class="' + (selected ? "selected" : "") + '">' +
-            "<div>" +
-            '<div class="background">' +
-            '<div><div class="preview-check">' + frappe.utils.icon("tick", "xs") + "</div></div>" +
-            '<div class="navbar"></div>' +
-            '<div class="p-2">' +
-            '<div class="toolbar"><span class="text"></span><span class="primary"></span></div>' +
-            '<div class="foreground"></div>' +
-            '<div class="foreground"></div>' +
+            '<div class="theme-card-wrapper' + (selected ? " selected" : "") + '">' +
+            '<button type="button" class="theme-card">' +
+            '<div class="theme-card-preview">' +
+            '<div class="theme-preview-container swift-preview">' +
+            '<div class="theme-preview-frame">' +
+            '<div class="theme-preview-titlebar">' +
+            '<span class="theme-preview-dot theme-preview-dot--red"></span>' +
+            '<span class="theme-preview-dot theme-preview-dot--yellow"></span>' +
+            '<span class="theme-preview-dot theme-preview-dot--green"></span>' +
+            "</div>" +
+            '<div class="theme-preview-content">' +
+            '<div class="theme-preview-sidebar"></div>' +
+            '<div class="theme-preview-main">' +
+            '<div class="theme-preview-header">' +
+            '<div class="theme-preview-header-title"></div>' +
+            '<div class="theme-preview-header-action"></div>' +
+            "</div>" +
+            '<div class="theme-preview-body">' + field + field + field + field + "</div>" +
             "</div>" +
             "</div>" +
             "</div>" +
-            '<div class="mt-3 text-center"><h5 class="theme-title"></h5></div>' +
+            "</div>" +
+            "</div>" +
+            '<div class="theme-card-footer">' +
+            '<span class="theme-card-label"></span>' +
+            '<span class="theme-card-radio"></span>' +
+            "</div>" +
+            "</button>" +
             "</div>"
         );
 
-        $card.find(".theme-title").text(p.label);
-        $card.attr("title", p.label + " · " + (p.mode === "dark" ? __("Dark") : __("Light"))
+        $card.attr("data-swift-card", p.key);
+        $card.find(".theme-card-label").text(p.label);
+        $card.find(".theme-card").attr("title", p.label + " · " + (p.mode === "dark" ? __("Dark") : __("Light"))
             + (p.backdrop && p.backdrop !== "none" ? " · " + p.backdrop : ""));
-        $card.find(".background").css({
-            "--bg-color": p.bg,
-            "--card-bg": p.card,
-            "--subtle-accent": p.card,
-            "--primary-color": p.primary,
-            "--text-light": p.muted,
-            "background-color": p.bg,
-        });
-        $card.find(".primary").css("background", "linear-gradient(135deg," + p.primary + "," + p.secondary + ")");
-        $card.find(".text").css("background-color", p.muted);
-        $card.find(".foreground").css("background-color", p.card);
-        $card.find(".navbar").css("background-color", p.card);
+        paintPreview($card, p);
 
-        $card.on("click", onClick);
+        $card.find(".theme-card").on("click", onClick);
         return $card;
+    }
+
+    function paintPreview($card, p) {
+        var preview = $card.find(".swift-preview")[0];
+        preview.style.setProperty("--p-canvas", p.bg);
+        preview.style.setProperty("--p-card", p.card);
+        preview.style.setProperty("--p-ink", p.muted);
+        preview.style.setProperty("--p-primary", p.primary);
+        preview.style.setProperty("--p-secondary", p.secondary);
     }
 
     function select($grid, key) {
@@ -173,11 +223,14 @@
         var $primary = $custom.find(".swift-color-primary").val(prefs.primary || "#4f46e5");
         var $secondary = $custom.find(".swift-color-secondary").val(prefs.secondary || "#7c3aed");
         var $preview = $custom.find(".swift-custom-preview");
+        var $customCard = $grid.find('[data-swift-card="' + CUSTOM_KEY + '"]');
 
         function paint() {
-            var css = "linear-gradient(135deg," + $primary.val() + "," + $secondary.val() + ")";
-            $preview.css("background", css);
-            $grid.find('[data-swift-card="' + CUSTOM_KEY + '"] .primary').css("background", css);
+            $preview.css("background", "linear-gradient(135deg," + $primary.val() + "," + $secondary.val() + ")");
+            var preview = $customCard.find(".swift-preview")[0];
+            if (!preview) return;
+            preview.style.setProperty("--p-primary", $primary.val());
+            preview.style.setProperty("--p-secondary", $secondary.val());
         }
         paint();
         $primary.on("input", paint);

@@ -2672,10 +2672,14 @@ class TestSwiftThemeStyling(IntegrationTestCase):
              "html[data-swift-themed] .widget-group-title {"),
             ("onboarding-widget-box", 'addClass("onboarding-widget-box")', "onboarding_widget.js",
              ".onboarding-widget-box .onboarding-step"),
-            ("onboarding-step", 'class="onboarding-step ${status}"', "onboarding_widget.js",
+            ("onboarding-step", 'class="onboarding-step ', "onboarding_widget.js",
              ".onboarding-widget-box .onboarding-step"),
-            ("step-text", 'class="step-text"', "onboarding_widget.js",
-             ".onboarding-step.active .step-text"),
+            # 16.50: the open step is .is-open and its text .step-title (they
+            # were .active and .step-text).
+            ("is-open", 'toggleClass("is-open"', "onboarding_widget.js",
+             ".onboarding-step.is-open .step-title"),
+            ("step-title", 'class="step-title', "onboarding_widget.js",
+             ".onboarding-step.is-open .step-title"),
         ]
         # The checks below validate a fixed list of known-good classes, which
         # cannot notice a *new* invented one appearing beside them. So first
@@ -2864,10 +2868,22 @@ class TestSwiftThemeStyling(IntegrationTestCase):
         self.assertIn('data-swift-sidebar="off"', read_css("swift-sidebar.css"))
 
     def test_toasts_are_anchored_to_the_top(self):
-        """Frappe pins #alert-container to bottom:0; save confirmations belong up top."""
+        """Frappe pins its toast stack to the bottom; save confirmations belong up top.
+
+        Since 16.50 the stack is .es-toast-container and every toast an
+        .es-toast (frappe/ui/components/toast.js); the #alert-container and
+        .desk-alert this used to move are gone, and a rule naming them moves
+        nothing.
+        """
         css = read_css("swift-toast.css")
-        self.assertIn("#alert-container", css)
+        with open(frappe.get_app_path("frappe", "public", "js", "frappe", "ui",
+                                      "components", "toast.js")) as handle:
+            toast_js = handle.read()
+        for cls in ("es-toast-container", "es-toast"):
+            self.assertIn(cls, toast_js, f"Frappe no longer renders .{cls}")
+        self.assertIn(".es-toast-container", css)
         self.assertIn("bottom: auto", css)
+        self.assertNotIn("#alert-container", css, "a rule still aims at the pre-16.50 toast stack")
 
     def test_nothing_traps_a_dropdown_inside_itself(self):
         """transform, filter and backdrop-filter all make an element the
@@ -3275,10 +3291,21 @@ class TestSwiftThemeStyling(IntegrationTestCase):
             self.assertIn(selector, css, f"{selector} is built by JS but never styled")
 
     def test_presets_reuse_frappes_own_card_markup(self):
-        """Cards must look like Frappe's Light/Dark ones, not a separate widget."""
+        """Cards must look like Frappe's Light/Dark ones, not a separate widget.
+
+        Each part is checked against Frappe's own switcher as well, so the day
+        Frappe renames its card again this fails instead of the cards quietly
+        losing their styling, which is what happened with 16.50.
+        """
         js = read_js("swift-theme-dialog.js")
+        with open(frappe.get_app_path("frappe", "public", "js", "frappe", "ui",
+                                      "theme_switcher.js")) as handle:
+            frappes = handle.read()
         self.assertIn("theme-grid", js, "cards belong in Frappe's own grid class")
-        for part in ("background", "preview-check", "theme-title", "foreground"):
+        for part in ("theme-card-wrapper", "theme-card", "theme-card-preview",
+                     "theme-preview-container", "theme-preview-frame",
+                     "theme-card-footer", "theme-card-label", "theme-card-radio"):
+            self.assertIn(part, frappes, f"Frappe's theme card no longer has .{part}")
             self.assertIn(part, js, f"card markup is missing .{part}")
 
     def test_custom_colours_are_a_second_step(self):

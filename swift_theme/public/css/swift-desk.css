@@ -523,12 +523,14 @@ html[data-swift-themed] .quick-list-widget-box .quick-list-item:hover {
    step and the current hover get the theme's accent instead of Frappe's
    generic --subtle-fg. The complete/pending/skipped step icons are left
    untouched — those are status, same reasoning as the quick-list dots above. */
-html[data-swift-themed] .onboarding-widget-box .onboarding-step.active,
+html[data-swift-themed] .onboarding-widget-box .onboarding-step.is-open,
 html[data-swift-themed] .onboarding-widget-box .onboarding-step:hover {
     background: var(--swift-accent-soft) !important;
 }
 
-html[data-swift-themed] .onboarding-widget-box .onboarding-step.active .step-text {
+/* 16.50 marks the open step .is-open (it was .active) and names its text
+   .step-title (it was .step-text). */
+html[data-swift-themed] .onboarding-widget-box .onboarding-step.is-open .step-title {
     color: var(--swift-accent);
     font-weight: 600;
 }
@@ -870,7 +872,8 @@ html[data-swift-themed] .navbar .search-bar input {
 }
 
 /* ---------------- Buttons and links ---------------- */
-html[data-swift-themed] .btn-primary {
+html[data-swift-themed] .btn-primary,
+html[data-swift-themed] .es-button[data-variant="solid"]:not([data-theme="red"]) {
     background: linear-gradient(135deg,
         var(--swift-primary, var(--swift-accent)),
         var(--swift-secondary, var(--swift-accent-hover)));
@@ -879,12 +882,20 @@ html[data-swift-themed] .btn-primary {
 }
 
 html[data-swift-themed] .btn-primary:hover,
-html[data-swift-themed] .btn-primary:focus {
+html[data-swift-themed] .btn-primary:focus,
+html[data-swift-themed] .es-button[data-variant="solid"]:not([data-theme="red"]):hover,
+html[data-swift-themed] .es-button[data-variant="solid"]:not([data-theme="red"]):focus-visible {
     filter: saturate(1.08) brightness(1.04);
     color: var(--swift-accent-fg);
 }
 
-html[data-swift-themed] a:not(.btn):not(.nav-link) {
+/* A link is the accent unless something more particular says otherwise.
+   :where() keeps this at the weight of a bare `a`: at full weight it beat
+   every rule that names a kind of link, this theme's own included - list
+   titles and workspace links meant to be text were the accent, and since
+   16.50, when the sidebar's labels stopped colouring themselves, so was
+   every item in the sidebar. */
+html[data-swift-themed] a:where(:not(.btn, .es-button, .nav-link)) {
     color: var(--swift-accent);
 }
 
@@ -924,14 +935,45 @@ html[data-swift-anim="off"] body::before {
 
 /* ============================================
    SWIFT PRESETS INSIDE FRAPPE'S "SWITCH THEME" DIALOG
-   Cards are rendered into a .theme-grid, so Frappe's own card styling applies
-   and only the surrounding chrome needs styles here.
+   The cards are Frappe's own (theme-card-wrapper, theme-card, theme-preview-*),
+   so Frappe's card styling applies; what is here is the surrounding chrome, a
+   grid that wraps, and the preview's colours.
    ============================================ */
 
 .swift-switch {
     margin-top: 22px;
     padding-top: 18px;
     border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+/* The section lives inside Frappe's own card row (swift-theme-dialog.js), so
+   the row wraps and the section takes a line of its own. */
+.theme-grid.swift-switch-host {
+    flex-wrap: wrap;
+}
+
+.theme-grid.swift-switch-host > .swift-switch,
+.theme-grid.swift-switch-host > .swift-switch-note {
+    flex: 0 0 100%;
+    min-width: 0;
+}
+
+/* Frappe's own Light / Dark / Automatic are put away while a scheme decides
+   light or dark; the section is then the whole picker and needs no rule
+   above it. */
+html[data-swift-scheme] .swift-switch-host > .theme-card-wrapper {
+    display: none;
+}
+
+html[data-swift-scheme] .swift-switch-host > .swift-switch {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.swift-switch-note {
+    margin: 0;
+    color: var(--text-muted);
 }
 
 .swift-switch-head {
@@ -962,42 +1004,73 @@ html[data-swift-anim="off"] body::before {
     text-decoration: underline;
 }
 
-/* Frappe's grid is fixed at 3 columns; twelve presets need to wrap and stay
-   compact, and the dialog needs to scroll rather than run off the screen. */
+/* Frappe lays its three cards out in one row; twelve presets and Custom
+   Colors need to wrap, and the dialog needs to scroll rather than run off
+   the screen. */
 .modal-body .theme-grid.swift-theme-grid {
-    grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
-    grid-gap: 14px;
-    max-height: 46vh;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 12px;
+    max-height: min(62vh, 560px);
     overflow-y: auto;
     padding: 2px;
 }
 
-.modal-body .theme-grid.swift-theme-grid .background {
-    height: 84px;
+.swift-theme-grid .theme-card-preview {
+    height: 78px;
 }
 
-.modal-body .theme-grid.swift-theme-grid .foreground {
-    height: 28px;
+/* The preview is drawn from Frappe's tokens; here they come from the preset,
+   so each card is a small picture of that preset rather than of the theme in
+   use. The window sits on the preset's canvas, as the desk does. */
+.swift-theme-grid .swift-preview {
+    padding-left: 16px;
+    padding-top: 12px;
+    /* --p-* are set on each card by swift-theme-dialog.js (paintPreview);
+       the fallbacks only matter if one is ever missing. */
+    background: var(--p-canvas, var(--bg-color));
+    --surface-base: var(--p-card, var(--card-bg));
+    --surface-gray-2: color-mix(in srgb, var(--p-card, var(--card-bg)), var(--p-ink, var(--text-muted)) 10%);
+    --surface-gray-3: color-mix(in srgb, var(--p-card, var(--card-bg)), var(--p-ink, var(--text-muted)) 16%);
+    --surface-gray-4: color-mix(in srgb, var(--p-card, var(--card-bg)), var(--p-ink, var(--text-muted)) 28%);
+    --outline-gray-1: color-mix(in srgb, var(--p-card, var(--card-bg)), var(--p-ink, var(--text-muted)) 14%);
+    --outline-gray-2: color-mix(in srgb, var(--p-card, var(--card-bg)), var(--p-ink, var(--text-muted)) 18%);
 }
 
-.modal-body .theme-grid.swift-theme-grid .foreground:first-child {
-    height: 18px;
+.swift-theme-grid .swift-preview .theme-preview-sidebar {
+    background: color-mix(in srgb, var(--p-card, var(--card-bg)), var(--p-primary, var(--swift-accent)) 12%);
 }
 
-.modal-body .theme-grid.swift-theme-grid .theme-title {
-    font-size: 12px;
-    margin: 0;
-    white-space: nowrap;
+.swift-theme-grid .swift-preview .theme-preview-header-action {
+    width: 22%;
+    height: 6px;
+    background: linear-gradient(135deg, var(--p-primary, var(--swift-accent)), var(--p-secondary, var(--swift-accent-hover)));
+}
+
+.swift-theme-grid .theme-card-footer {
+    gap: 8px;
+    padding: 7px 10px;
+}
+
+.swift-theme-grid .theme-card-label {
+    min-width: 0;
     overflow: hidden;
+    font-size: var(--text-sm, 12px);
+    white-space: nowrap;
     text-overflow: ellipsis;
 }
 
-.modal-body .theme-grid.swift-theme-grid .mt-3 {
-    margin-top: 8px !important;
+.swift-theme-grid .theme-card:hover {
+    border-color: color-mix(in srgb, var(--swift-accent, var(--outline-gray-4)) 55%, var(--outline-gray-2));
 }
 
-.modal-body .theme-grid.swift-theme-grid [data-swift-card] {
-    cursor: pointer;
+.swift-theme-grid .theme-card-wrapper.selected .theme-card {
+    border-color: var(--swift-accent, var(--ink-gray-8));
+    box-shadow: 0 0 0 1px var(--swift-accent, var(--ink-gray-8));
+}
+
+.swift-theme-grid .theme-card-wrapper.selected .theme-card-radio {
+    border-color: var(--swift-accent, var(--ink-gray-8));
 }
 
 /* ---- Step two: the custom colour pair ---- */
@@ -1279,4 +1352,18 @@ html[data-swift-brand-mark="own"] img[src*="/assets/swift_theme/icons/"] {
   width: 30px;
   height: 30px;
   object-fit: contain;
+}
+
+/* ---------------- Splash ----------------
+   The desk's loading screen draws the theme's lion (api/boot.py,
+   brand_favicon). Frappe caps that picture at 200px with an inline style
+   (templates/includes/splash_screen.html); the lion is drawn larger, on the
+   soft halo the QuanteX site gives it, so its circuit can be seen moving
+   while the desk loads. A site's own splash image keeps Frappe's size. */
+.splash img[src$="/quantex-lion.svg"] {
+    width: clamp(220px, 34vmin, 360px) !important;
+    max-width: none !important;
+    height: auto;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0, 109, 221, 0.16), transparent 72%);
 }
